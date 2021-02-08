@@ -1,7 +1,6 @@
 'use strict'
 
 //Declarations
-
 var constants               = require('../../config/constants');
 const { body,validationResult,check } = require('express-validator');
 const Sequelize             = require('sequelize');
@@ -12,14 +11,38 @@ const productController     = require('./product');
 const theModel              = db.product; 
 const env = process.env.NODE_ENV || 'development';
 const config = require('../../config/config.json')[env];
-const { off } = require('../../../../../nodejs/react-mongo-admin-service/api/models/userModel');
 
 
 //--------------- START Functons ----------------------
 
-//Search User
+//Search Product by name
 /****************
- * () => UserSearch Fulltext
+ * () => ProductSearch Fulltext
+ * @page    -   search query
+ * 
+ ****************************/
+exports.searchProduct  =   (req, resp) => {
+    let getData = req.query || null;
+
+    //let getQuery = getData.srch;
+    //const cond      = '%' +getQuery+'%';
+    var whereStatement          = {};
+    //whereStatement.prod_name    = { [Op.like]: cond };
+    whereStatement.prod_exp_date = { [Op.gte]: new Date() };
+    
+    theModel.findAndCountAll({
+        where: whereStatement
+    }).then(function (result) {
+        let recordData = result.rows;
+        resp.status(200).json({ message: 'Product Lists',status : 1, data: recordData });
+        return;
+    });
+}
+
+
+//Search Product
+/****************
+ * () => ProductSearch Fulltext
  * @page    -   pageNumber - optional
  * @size    -   limit - optional
  * 
@@ -44,8 +67,8 @@ exports.searchList  =   (req, resp) => {
             }).then(function (result) {
                 let totalCount = result.count;
                 let totalPages = Math.ceil(totalCount / limit);
-                let productData = result.rows;
-                resp.status(200).json({ message: 'Product Lists',status : 1, data: productData, totalProduct:totalCount, totalPage:totalPages, limit: limit });
+                let recordData = result.rows;
+                resp.status(200).json({ message: 'Product Lists',status : 1, data: recordData, totalRecord:totalCount, totalPage:totalPages, limit: limit });
                 return;
             });
     }else{
@@ -59,7 +82,6 @@ exports.searchList  =   (req, resp) => {
  * require Token from headers
  */
 exports.authRequired = function(req, res, next) {
-    console.log(">>>. ",req.user);
     if (req.user) {
       next();
     } else {  
@@ -93,8 +115,8 @@ exports.getList  =  (req, resp)  =>{
     }).then(function (result) {
         let totalCount = result.count;
         let totalPages = Math.ceil(totalCount / limit);
-        let productData = result.rows;
-        resp.status(200).json({ message: 'Product Lists',status : 1, data: productData, totalProduct:totalCount, totalPage:totalPages, limit: limit });
+        let recordData = result.rows;
+        resp.status(200).json({ message: 'Product Lists',status : 1, data: recordData, totalRecord:totalCount, totalPage:totalPages, limit: limit });
         return;
     });
 }
